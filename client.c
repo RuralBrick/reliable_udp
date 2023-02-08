@@ -201,7 +201,7 @@ int main (int argc, char *argv[])
     e = 1;
 
     // =====================================
-    // *** TODO: Implement the rest of reliable transfer in the client ***
+    // TODO: *** Implement the rest of reliable transfer in the client ***
     // Implement GBN for basic requirement or Selective Repeat to receive bonus
 
     // Note: the following code is not the complete logic. It only sends a
