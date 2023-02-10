@@ -2,7 +2,7 @@
 client
 server
 *.file
-
+compile_commands.json
 
 # Prerequisites
 *.d
