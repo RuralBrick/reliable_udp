@@ -1,6 +1,7 @@
 .vscode/
 client
 server
+*.file
 
 
 # Prerequisites
