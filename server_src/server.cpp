@@ -208,6 +208,10 @@ int main (int argc, char *argv[])
 
                     break;
                 }
+
+                fwrite(recvpkt.payload, 1, recvpkt.length, fp);
+                printSend(&ackpkt, 0);
+                sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
             }
         }
 

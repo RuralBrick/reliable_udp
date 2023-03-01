@@ -1,7 +1,7 @@
 ./USERID=123456789
 
 CC = g++
-CFLAGS := $(CFLAGS) -Wall -Wextra
+CFLAGS := $(CFLAGS) -Wall -Wextra --debug
 
 SRC_SERVER = $(wildcard server_src/*.cpp)
 OBJ_SERVER = $(SRC_SERVER:.cpp=.o)

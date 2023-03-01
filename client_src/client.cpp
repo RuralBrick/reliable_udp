@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <netdb.h> 
+#include <errno.h>
 
 // =====================================
 
@@ -195,6 +196,8 @@ int main (int argc, char *argv[])
     buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
     printSend(&pkts[0], 0);
     sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+
+    // Set timer and build dupe packet
     timer = setTimer();
     buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
 
@@ -210,9 +213,22 @@ int main (int argc, char *argv[])
     //       Only for demo purpose. DO NOT USE IT in your final submission
     while (1) {
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
-        if (n > 0) {
+        printRecv(&ackpkt);
+
+        if (n < 0) {
+            perror(NULL);
+            continue;
+        }
+
+        if (feof(fp)) {
             break;
         }
+
+        m = fread(buf, 1, PAYLOAD_SIZE, fp);
+
+        buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
+        printSend(&pkts[0], 0);
+        sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
     }
 
     // *** End of your client implementation ***
