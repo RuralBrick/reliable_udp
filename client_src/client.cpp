@@ -177,16 +177,16 @@ int main (int argc, char *argv[])
     // FILE READING VARIABLES
 
     char buf[PAYLOAD_SIZE];
-    size_t m;
+    size_t m;                       // Size of buf
 
     // =====================================
     // CIRCULAR BUFFER VARIABLES
 
     struct packet ackpkt;
     struct packet pkts[WND_SIZE];
-    int s = 0;
-    int e = 0;
-    int full = 0;
+    int s = 0;                      // Start of pkts/earliest packet index
+    int e = 0;                      // End of pkts/index after latest packet
+    int full = 0;                   // Flag
 
     // =====================================
     // Send First Packet (ACK containing payload)
@@ -211,10 +211,17 @@ int main (int argc, char *argv[])
     //       single data packet, and then tears down the connection without
     //       handling data loss.
     //       Only for demo purpose. DO NOT USE IT in your final submission
+
+    // TODO: Send packets until window is filled
+    // TODO: Start timers
+
     while (1) {
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
         if (n > 0) {
             printRecv(&ackpkt);
+
+            // TODO: Shift window based on ackpkt.acknum
+            // TODO: Stop timer (if needed)
 
             if (feof(fp)) {
                 break;
@@ -225,7 +232,11 @@ int main (int argc, char *argv[])
             buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
             printSend(&pkts[0], 0);
             sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+
+            // TODO: Start new timers
         }
+
+        // TODO: Resend packets upon timeout
     }
 
     // *** End of your client implementation ***

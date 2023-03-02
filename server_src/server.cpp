@@ -145,7 +145,7 @@ int main (int argc, char *argv[])
         while (1) {
             printSend(&synackpkt, 0);
             sendto(sockfd, &synackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
-            
+
             while(1) {
                 n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &cliaddr, (socklen_t *) &cliaddrlen);
                 if (n > 0) {
@@ -188,7 +188,7 @@ int main (int argc, char *argv[])
         // TODO: *** Implement the rest of reliable transfer in the server ***
         // Implement GBN for basic requirement or Selective Repeat to receive bonus
 
-        // Note: the following code is not the complete logic. It only expects 
+        // Note: the following code is not the complete logic. It only expects
         //       a single data packet, and then tears down the connection
         //       without handling data loss.
         //       Only for demo purpose. DO NOT USE IT in your final submission
@@ -209,9 +209,15 @@ int main (int argc, char *argv[])
                     break;
                 }
 
+                // TODO: Check for/buffer out-of-order packets
+
                 fwrite(recvpkt.payload, 1, recvpkt.length, fp);
+
+                // TODO: Use correct acknum
                 printSend(&ackpkt, 0);
                 sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
+
+                // TODO: Re-ACK duplicate packets
             }
         }
 
@@ -253,7 +259,7 @@ int main (int argc, char *argv[])
                 printSend(&finpkt, 1);
                 sendto(sockfd, &finpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
                 timer = setTimer();
-                
+
                 continue;
             }
             if ((lastackpkt.ack || lastackpkt.dupack) && lastackpkt.acknum == (finpkt.seqnum + 1) % MAX_SEQN)
