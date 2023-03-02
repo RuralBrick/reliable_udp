@@ -212,28 +212,43 @@ int main (int argc, char *argv[])
     //       handling data loss.
     //       Only for demo purpose. DO NOT USE IT in your final submission
 
-    // TODO: Send packets until window is filled
     // TODO: Start timers
+
+    int temp_count = 1;
+
+    while (!feof(fp) && !full) {
+        temp_count++;
+
+        // TODO: Use correct seqnum (and maybe acknum)
+
+        m = fread(buf, 1, PAYLOAD_SIZE, fp);
+
+        buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
+        printSend(&pkts[e], 0);
+        sendto(sockfd, &pkts[e], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+
+        timer = setTimer();
+        buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
+
+        e = (e + 1) % WND_SIZE;
+
+        if (e == s)
+            full = 1;
+    }
 
     while (1) {
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
         if (n > 0) {
+            temp_count--;
+
             printRecv(&ackpkt);
 
             // TODO: Shift window based on ackpkt.acknum
             // TODO: Stop timer (if needed)
-
-            if (feof(fp)) {
-                break;
-            }
-
-            m = fread(buf, 1, PAYLOAD_SIZE, fp);
-
-            buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
-            printSend(&pkts[0], 0);
-            sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
-
             // TODO: Start new timers
+
+            if (temp_count <= 0)
+                break;
         }
 
         // TODO: Resend packets upon timeout
