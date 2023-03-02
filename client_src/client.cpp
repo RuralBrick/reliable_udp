@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <fcntl.h>
-#include <netdb.h> 
+#include <netdb.h>
 #include <errno.h>
 
 // =====================================
@@ -96,8 +96,8 @@ int main (int argc, char *argv[])
 
     struct in_addr servIP;
     if (inet_aton(argv[1], &servIP) == 0) {
-        struct hostent* host_entry; 
-        host_entry = gethostbyname(argv[1]); 
+        struct hostent* host_entry;
+        host_entry = gethostbyname(argv[1]);
         if (host_entry == NULL) {
             perror("ERROR: IP address not in standard dot notation\n");
             exit(1);
@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
 
     int sockfd;
     struct sockaddr_in servaddr;
-    
+
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
     servaddr.sin_family = AF_INET;
@@ -175,7 +175,7 @@ int main (int argc, char *argv[])
 
     // =====================================
     // FILE READING VARIABLES
-    
+
     char buf[PAYLOAD_SIZE];
     size_t m;
 
@@ -213,22 +213,19 @@ int main (int argc, char *argv[])
     //       Only for demo purpose. DO NOT USE IT in your final submission
     while (1) {
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
-        printRecv(&ackpkt);
+        if (n > 0) {
+            printRecv(&ackpkt);
 
-        if (n < 0) {
-            perror(NULL);
-            continue;
+            if (feof(fp)) {
+                break;
+            }
+
+            m = fread(buf, 1, PAYLOAD_SIZE, fp);
+
+            buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
+            printSend(&pkts[0], 0);
+            sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
         }
-
-        if (feof(fp)) {
-            break;
-        }
-
-        m = fread(buf, 1, PAYLOAD_SIZE, fp);
-
-        buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
-        printSend(&pkts[0], 0);
-        sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
     }
 
     // *** End of your client implementation ***
