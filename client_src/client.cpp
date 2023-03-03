@@ -212,38 +212,44 @@ int main (int argc, char *argv[])
     //       handling data loss.
     //       Only for demo purpose. DO NOT USE IT in your final submission
 
-    // TODO: Start timers
-
-    int temp_count = 1;
-
-    while (!feof(fp) && !full) {
-        temp_count++;
-
-        // TODO: Use correct seqnum (and maybe acknum)
-
-        m = fread(buf, 1, PAYLOAD_SIZE, fp);
-
-        buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
-        printSend(&pkts[e], 0);
-        sendto(sockfd, &pkts[e], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
-
-        timer = setTimer();
-        buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
-
-        e = (e + 1) % WND_SIZE;
-
-        if (e == s)
-            full = 1;
-    }
+    int temp_count = 1; // FIXME: Remove, eventually
 
     while (1) {
+        
+        while (!feof(fp) && !full) {
+            temp_count++;
+
+            // TODO: Use correct seqnum (and maybe acknum)
+
+            m = fread(buf, 1, PAYLOAD_SIZE, fp);
+
+            buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
+            printSend(&pkts[e], 0);
+            sendto(sockfd, &pkts[e], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+
+            // TODO: Start timers properly
+
+            timer = setTimer();
+            buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
+
+            e = (e + 1) % WND_SIZE;
+
+            if (e == s)
+                full = 1;
+        }
+
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
+        
         if (n > 0) {
             temp_count--;
 
             printRecv(&ackpkt);
 
             // TODO: Shift window based on ackpkt.acknum
+
+            s = (s + 1) % WND_SIZE;
+            full = 0;
+
             // TODO: Stop timer (if needed)
             // TODO: Start new timers
 
