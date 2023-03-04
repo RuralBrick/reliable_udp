@@ -12,6 +12,7 @@
 #include <errno.h>
 
 #include "util.hpp"
+#include "window.hpp"
 
 int main (int argc, char *argv[])
 {
@@ -109,25 +110,24 @@ int main (int argc, char *argv[])
     // CIRCULAR BUFFER VARIABLES
 
     struct packet ackpkt;
-    struct packet pkts[WND_SIZE];
-    int s = 0;                      // Start of pkts/earliest packet index
-    int e = 0;                      // End of pkts/index after latest packet
-    int full = 0;                   // Flag
+    struct packet tmpPkt; // used to build packets before being added to the Window
+    Window window(seqNum);
 
     // =====================================
     // Send First Packet (ACK containing payload)
 
     m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
-    buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
-    printSend(&pkts[0], 0);
-    sendto(sockfd, &pkts[0], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+    buildPkt(&tmpPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
+    seqNum = (seqNum + m) % MAX_SEQN;
+    printSend(&tmpPkt, 0);
+    sendto(sockfd, &tmpPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+    window.addPacket(tmpPkt);
 
+    // TODO: start timer properly
     // Set timer and build dupe packet
-    timer = setTimer();
-    buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
-
-    e = 1;
+    // timer = setTimer();
+    // buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
 
     // =====================================
     // TODO: *** Implement the rest of reliable transfer in the client ***
@@ -138,49 +138,34 @@ int main (int argc, char *argv[])
     //       handling data loss.
     //       Only for demo purpose. DO NOT USE IT in your final submission
 
-    int temp_count = 1; // FIXME: Remove, eventually
-
     while (1) {
-        
-        while (!feof(fp) && !full) {
-            temp_count++;
 
-            // TODO: Use correct seqnum (and maybe acknum)
+        if (feof(fp) && window.isEmpty()) {
+            break;
+        }
 
+        while (!feof(fp) && !window.isFull()) {
             m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
-            buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
-            printSend(&pkts[e], 0);
-            sendto(sockfd, &pkts[e], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+            buildPkt(&tmpPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
+            seqNum = (seqNum + m) % MAX_SEQN;
+            printSend(&tmpPkt, 0);
+            sendto(sockfd, &tmpPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+            window.addPacket(tmpPkt);
 
             // TODO: Start timers properly
-
-            timer = setTimer();
-            buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
-
-            e = (e + 1) % WND_SIZE;
-
-            if (e == s)
-                full = 1;
+            // timer = setTimer();
+            // buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
         }
 
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
         
         if (n > 0) {
-            temp_count--;
-
             printRecv(&ackpkt);
-
-            // TODO: Shift window based on ackpkt.acknum
-
-            s = (s + 1) % WND_SIZE;
-            full = 0;
+            window.finishPacket(ackpkt.acknum);
 
             // TODO: Stop timer (if needed)
             // TODO: Start new timers
-
-            if (temp_count <= 0)
-                break;
         }
 
         // TODO: Resend packets upon timeout
