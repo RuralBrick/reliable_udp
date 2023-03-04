@@ -27,7 +27,7 @@ void Window::addPacket(struct packet pkt) {
 // Marks the given packet for removal
 void Window::finishPacket(unsigned short ackNum) {
     for (int i = 0; i < WND_SIZE; i++) {
-        if (status[i] == waiting && (packets[i].seqnum + packets[i].length) == ackNum) {
+        if (status[i] == waiting && (packets[i].seqnum + packets[i].length) % MAX_SEQN == ackNum) {
             status[i] = finished;
             shiftToFirstWaiting();
             return;
@@ -38,6 +38,13 @@ void Window::finishPacket(unsigned short ackNum) {
 
 bool Window::isFull() {
     return getEmptySlot() < 0;
+}
+
+bool Window::isEmpty() {
+    for (PacketStatus s : status) {
+        if (s != empty) return false;
+    }
+    return true;
 }
 
 bool Window::packetFitsInWindow(unsigned short seqNum, int len) {

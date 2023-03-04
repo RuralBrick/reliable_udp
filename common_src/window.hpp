@@ -14,6 +14,7 @@ public:
     void addPacket(struct packet pkt);
     void finishPacket(unsigned short seqNum);
     bool isFull();
+    bool isEmpty();
     bool packetFitsInWindow(unsigned short seqNum, int len);
 
 private:
