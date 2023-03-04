@@ -1,8 +1,6 @@
 #pragma once
 
-#ifndef NULL
-    #define NULL ((void *)0)
-#endif
+#include <string>
 
 // Constants
 #define RTO 500000 /* timeout in microseconds */
@@ -31,6 +29,8 @@ void buildPkt(struct packet* pkt, unsigned short seqnum, unsigned short acknum, 
 void printRecv(struct packet* pkt);
 void printSend(struct packet* pkt, int resend);
 void printTimeout(struct packet* pkt);
+
+void printError(std::string format, ...); // just for testing, exits immediately
 
 // Timer
 double setTimer();
