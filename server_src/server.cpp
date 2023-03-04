@@ -8,74 +8,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 
-// =====================================
-
-#define RTO 500000 /* timeout in microseconds */
-#define HDR_SIZE 12 /* header size*/
-#define PKT_SIZE 524 /* total packet size */
-#define PAYLOAD_SIZE 512 /* PKT_SIZE - HDR_SIZE */
-#define WND_SIZE 10 /* window size*/
-#define MAX_SEQN 25601 /* number of sequence numbers [0-25600] */
-
-// Packet Structure: Described in Section 2.1.1 of the spec. DO NOT CHANGE!
-struct packet {
-    unsigned short seqnum;
-    unsigned short acknum;
-    char syn;
-    char fin;
-    char ack;
-    char dupack;
-    unsigned int length;
-    char payload[PAYLOAD_SIZE];
-};
-
-// Printing Functions: Call them on receiving/sending/packet timeout according
-// Section 2.6 of the spec. The content is already conformant with the spec,
-// no need to change. Only call them at correct times.
-void printRecv(struct packet* pkt) {
-    printf("RECV %d %d%s%s%s\n", pkt->seqnum, pkt->acknum, pkt->syn ? " SYN": "", pkt->fin ? " FIN": "", (pkt->ack || pkt->dupack) ? " ACK": "");
-}
-
-void printSend(struct packet* pkt, int resend) {
-    if (resend)
-        printf("RESEND %d %d%s%s%s\n", pkt->seqnum, pkt->acknum, pkt->syn ? " SYN": "", pkt->fin ? " FIN": "", pkt->ack ? " ACK": "");
-    else
-        printf("SEND %d %d%s%s%s%s\n", pkt->seqnum, pkt->acknum, pkt->syn ? " SYN": "", pkt->fin ? " FIN": "", pkt->ack ? " ACK": "", pkt->dupack ? " DUP-ACK": "");
-}
-
-void printTimeout(struct packet* pkt) {
-    printf("TIMEOUT %d\n", pkt->seqnum);
-}
-
-// Building a packet by filling the header and contents.
-// This function is provided to you and you can use it directly
-void buildPkt(struct packet* pkt, unsigned short seqnum, unsigned short acknum, char syn, char fin, char ack, char dupack, unsigned int length, const char* payload) {
-    pkt->seqnum = seqnum;
-    pkt->acknum = acknum;
-    pkt->syn = syn;
-    pkt->fin = fin;
-    pkt->ack = ack;
-    pkt->dupack = dupack;
-    pkt->length = length;
-    memcpy(pkt->payload, payload, length);
-}
-
-// =====================================
-
-double setTimer() {
-    struct timeval e;
-    gettimeofday(&e, NULL);
-    return (double) e.tv_sec + (double) e.tv_usec/1000000 + (double) RTO/1000000;
-}
-
-int isTimeout(double end) {
-    struct timeval s;
-    gettimeofday(&s, NULL);
-    double start = (double) s.tv_sec + (double) s.tv_usec/1000000;
-    return ((end - start) < 0.0);
-}
-
-// =====================================
+#include "util.hpp"
 
 int main (int argc, char *argv[])
 {

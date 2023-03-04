@@ -3,6 +3,7 @@ client
 server
 *.file
 compile_commands.json
+.cache/
 
 # Prerequisites
 *.d
