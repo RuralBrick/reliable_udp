@@ -5,7 +5,7 @@
 
 Window::Window(unsigned short startSeqNum)
     : startSeqNum(startSeqNum),
-      endSeqNum(startSeqNum + WND_SIZE * PAYLOAD_SIZE)
+      endSeqNum((startSeqNum + WND_SIZE * PAYLOAD_SIZE) % MAX_SEQN)
 {}
 
 void Window::addPacket(struct packet pkt) {
@@ -115,6 +115,8 @@ void Window::shiftBySeqNums(unsigned short deltaSeqNum) {
 void Window::shiftToFirstWaiting() {
     int nextIdx = getIdxOfEarliestPacket();
     while (nextIdx != -1) {
+        startSeqNum = packets[nextIdx].seqnum;
+        endSeqNum = (startSeqNum + WND_SIZE * PAYLOAD_SIZE) % MAX_SEQN;
         if (status[nextIdx] == waiting) return;
 
         // if the earliest packet is finished, we can remove it from the buffer
