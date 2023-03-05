@@ -22,6 +22,7 @@ public:
 private:
     struct packet packets[WND_SIZE];
     PacketStatus status[WND_SIZE] = {empty};
+    // TODO: Timers
     unsigned short startSeqNum, endSeqNum;
 
     int getPacketIdx(unsigned short seqNum);

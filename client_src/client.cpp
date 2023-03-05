@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
         while (!feof(fp) && !window.isFull()) {
             m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
-            buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
+            buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf); // FIXME: Flags
             seqNum = (seqNum + m) % MAX_SEQN;
             printSend(&sendPkt, 0);
             sendto(sockfd, &sendPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);

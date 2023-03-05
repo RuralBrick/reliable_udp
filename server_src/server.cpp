@@ -135,7 +135,7 @@ int main (int argc, char *argv[])
             if (n > 0) {
                 printRecv(&recvpkt);
 
-                if (recvpkt.fin) { // TODO: we might need to dupack if we receive multiple fins
+                if (recvpkt.fin) {
                     cliSeqNum = (cliSeqNum + 1) % MAX_SEQN;
 
                     buildPkt(&ackpkt, seqNum, cliSeqNum, 0, 0, 1, 0, 0, NULL);
