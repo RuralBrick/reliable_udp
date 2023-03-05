@@ -162,7 +162,7 @@ int main (int argc, char *argv[])
         
         if (n > 0) {
             printRecv(&ackpkt);
-            window.finishPacket(ackpkt.acknum);
+            window.ackPacket(ackpkt.acknum, NULL);
 
             // TODO: Stop timer (if needed)
             // TODO: Start new timers

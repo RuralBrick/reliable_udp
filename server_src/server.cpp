@@ -9,6 +9,7 @@
 #include <fcntl.h>
 
 #include "util.hpp"
+#include "window.hpp"
 
 int main (int argc, char *argv[])
 {
@@ -126,6 +127,8 @@ int main (int argc, char *argv[])
         //       without handling data loss.
         //       Only for demo purpose. DO NOT USE IT in your final submission
         struct packet recvpkt;
+        Window window(cliSeqNum);  // TODO: update cliSeqNum with each pkt
+                                   // because it's used in teardown
 
         while(1) {
             n = recvfrom(sockfd, &recvpkt, PKT_SIZE, 0, (struct sockaddr *) &cliaddr, (socklen_t *) &cliaddrlen);
@@ -142,15 +145,20 @@ int main (int argc, char *argv[])
                     break;
                 }
 
-                // TODO: Check for/buffer out-of-order packets
-
-                fwrite(recvpkt.payload, 1, recvpkt.length, fp);
+                // Check if we need to send a dupack
+                if (!window.canFitPacket(recvpkt.seqnum, recvpkt.length)
+                        || window.containsPacket(recvpkt.seqnum)) {
+                    buildPkt(&ackpkt, seqNum, (recvpkt.seqnum + recvpkt.length) % MAX_SEQN, 0, 0, 0, 1, 0, NULL);
+                    printSend(&ackpkt, 1);
+                    sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
+                    continue;
+                }
 
                 buildPkt(&ackpkt, seqNum, (recvpkt.seqnum + recvpkt.length) % MAX_SEQN, 0, 0, 1, 0, 0, NULL);
                 printSend(&ackpkt, 0);
                 sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
-
-                // TODO: Re-ACK duplicate packets
+                window.addPacket(recvpkt);
+                window.ackPacket(ackpkt.acknum, fp);
             }
         }
 

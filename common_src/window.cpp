@@ -1,5 +1,6 @@
 #include "util.hpp"
 #include "window.hpp"
+#include <stdio.h>
 
 /* Public methods */
 
@@ -9,10 +10,10 @@ Window::Window(unsigned short startSeqNum)
 {}
 
 void Window::addPacket(struct packet pkt) {
-    if (!packetFitsInWindow(pkt.seqnum, pkt.length)) {
+    if (!canFitPacket(pkt.seqnum, pkt.length)) {
         printError("tried to add pkt %u, but it doesn't fit in the window", pkt.seqnum);
     }
-    if (getPacketIdx(pkt.seqnum) >= 0) {
+    if (containsPacket(pkt.seqnum)) {
         printError("tried to add pkt %u, but it's already in the window", pkt.seqnum);
     }
     if (isFull()) {
@@ -25,11 +26,12 @@ void Window::addPacket(struct packet pkt) {
 }
 
 // Marks the given packet for removal
-void Window::finishPacket(unsigned short ackNum) {
+// If fp is non-null, we write the buffered packets to it
+void Window::ackPacket(unsigned short ackNum, FILE *fp) {
     for (int i = 0; i < WND_SIZE; i++) {
         if (status[i] == waiting && (packets[i].seqnum + packets[i].length) % MAX_SEQN == ackNum) {
-            status[i] = finished;
-            shiftToFirstWaiting();
+            status[i] = acked;
+            shiftPastAckedPackets(fp);
             return;
         }
     }
@@ -47,7 +49,8 @@ bool Window::isEmpty() {
     return true;
 }
 
-bool Window::packetFitsInWindow(unsigned short seqNum, int len) {
+// Returns true if the packet is entirely within the seq num range
+bool Window::canFitPacket(unsigned short seqNum, int len) {
     unsigned short beg = seqNum;
     unsigned short end = (beg + len) % MAX_SEQN;
 
@@ -60,6 +63,14 @@ bool Window::packetFitsInWindow(unsigned short seqNum, int len) {
     return beg >= startSeqNum
         && end <= endSeqNum
         && beg < end;
+}
+
+bool Window::containsPacket(unsigned short seqNum) {
+    return getPacketIdx(seqNum) >= 0;
+}
+
+unsigned short Window::getStartSeqNum() {
+    return startSeqNum;
 }
 
 /* Private methods */
@@ -112,14 +123,20 @@ void Window::shiftBySeqNums(unsigned short deltaSeqNum) {
     endSeqNum = (endSeqNum + deltaSeqNum) % MAX_SEQN;
 }
 
-void Window::shiftToFirstWaiting() {
+// If the earliest pkts in the window are acked, then remove them and shift
+// the window forward.
+// If fp is non-null, then write the payloads of the pkts that we shift past
+//   (fp is only used by the server)
+void Window::shiftPastAckedPackets(FILE *fp) {
     int nextIdx = getIdxOfEarliestPacket();
     while (nextIdx != -1) {
-        startSeqNum = packets[nextIdx].seqnum;
-        endSeqNum = (startSeqNum + WND_SIZE * PAYLOAD_SIZE) % MAX_SEQN;
+        if (packets[nextIdx].seqnum != startSeqNum) return;
         if (status[nextIdx] == waiting) return;
 
-        // if the earliest packet is finished, we can remove it from the buffer
+        // the next earliest packet is acked, so we can remove it from the buffer
+        if (fp) {
+            fwrite(packets[nextIdx].payload, 1, packets[nextIdx].length, fp);
+        }
         shiftBySeqNums(packets[nextIdx].length);
         status[nextIdx] = empty;
         nextIdx = getIdxOfEarliestPacket();
