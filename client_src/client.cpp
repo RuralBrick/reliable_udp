@@ -110,7 +110,7 @@ int main (int argc, char *argv[])
     // CIRCULAR BUFFER VARIABLES
 
     struct packet ackpkt;
-    struct packet tmpPkt; // used to build packets before being added to the Window
+    struct packet sendPkt; // used to build packets before being added to the Window
     Window window(seqNum);
 
     // =====================================
@@ -118,11 +118,11 @@ int main (int argc, char *argv[])
 
     m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
-    buildPkt(&tmpPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
+    buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
     seqNum = (seqNum + m) % MAX_SEQN;
-    printSend(&tmpPkt, 0);
-    sendto(sockfd, &tmpPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
-    window.addPacket(tmpPkt);
+    printSend(&sendPkt, 0);
+    sendto(sockfd, &sendPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+    window.addPacket(sendPkt);
 
     // TODO: start timer properly
     // Set timer and build dupe packet
@@ -147,11 +147,11 @@ int main (int argc, char *argv[])
         while (!feof(fp) && !window.isFull()) {
             m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
-            buildPkt(&tmpPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
+            buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
             seqNum = (seqNum + m) % MAX_SEQN;
-            printSend(&tmpPkt, 0);
-            sendto(sockfd, &tmpPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
-            window.addPacket(tmpPkt);
+            printSend(&sendPkt, 0);
+            sendto(sockfd, &sendPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+            window.addPacket(sendPkt);
 
             // TODO: Start timers properly
             // timer = setTimer();
