@@ -18,7 +18,6 @@ public:
     bool isEmpty();
     bool canFitPacket(unsigned short seqNum, int len);
     bool containsPacket(unsigned short seqNum);
-    unsigned short getStartSeqNum();
 
 private:
     struct packet packets[WND_SIZE];

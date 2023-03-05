@@ -69,10 +69,6 @@ bool Window::containsPacket(unsigned short seqNum) {
     return getPacketIdx(seqNum) >= 0;
 }
 
-unsigned short Window::getStartSeqNum() {
-    return startSeqNum;
-}
-
 /* Private methods */
 
 // if there is a packet in the window with the given seqNum, return its index
