@@ -25,11 +25,11 @@ void printTimeout(struct packet* pkt) {
 // You can use this function with formatting, just like printf
 void printError(std::string format, ...) {
     va_list ap;
-	va_start(ap, format);
+    va_start(ap, format);
     // this just uses styling control codes, not really important
-	fprintf(stderr, "\x1b[1m\x1b[31mERROR:\x1b[0m\x1b[1m ");
-	vfprintf(stderr, format.c_str(), ap);
+    fprintf(stderr, "\x1b[1m\x1b[31mERROR:\x1b[0m\x1b[1m ");
+    vfprintf(stderr, format.c_str(), ap);
     fprintf(stderr, "\x1b[0m\n");
-	va_end(ap);
+    va_end(ap);
     exit(1);
 }
