@@ -149,7 +149,7 @@ int main (int argc, char *argv[])
                 if (!window.canFitPacket(recvpkt.seqnum, recvpkt.length)
                         || window.containsPacket(recvpkt.seqnum)) {
                     buildPkt(&ackpkt, seqNum, (recvpkt.seqnum + recvpkt.length) % MAX_SEQN, 0, 0, 0, 1, 0, NULL);
-                    printSend(&ackpkt, 1);
+                    printSend(&ackpkt, 0);
                     sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
                     continue;
                 }
