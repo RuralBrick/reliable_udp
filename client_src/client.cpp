@@ -16,8 +16,9 @@
 
 int main (int argc, char *argv[])
 {
-    if (argc != 4) {
-        perror("ERROR: incorrect number of arguments\n");
+    if (argc != 5) {
+        perror("ERROR: incorrect number of arguments\n"
+                  "Please use \"./client <HOSTNAME-OR-IP> <PORT> <ISN> <FILENAME>\"\n");
         exit(1);
     }
 
@@ -33,8 +34,9 @@ int main (int argc, char *argv[])
     }
 
     unsigned int servPort = atoi(argv[2]);
+    unsigned short initialSeqNum = atoi(argv[3]);
 
-    FILE* fp = fopen(argv[3], "r");
+    FILE* fp = fopen(argv[4], "r");
     if (fp == NULL) {
         perror("ERROR: File not found\n");
         exit(1);
@@ -71,7 +73,7 @@ int main (int argc, char *argv[])
 
     struct packet synpkt, synackpkt;
 
-    unsigned short seqNum = rand() % MAX_SEQN;
+    unsigned short seqNum = initialSeqNum;
     buildPkt(&synpkt, seqNum, 0, 1, 0, 0, 0, 0, NULL);
 
     printSend(&synpkt, 0);

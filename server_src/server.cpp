@@ -13,12 +13,14 @@
 
 int main (int argc, char *argv[])
 {
-    if (argc != 2) {
-        perror("ERROR: incorrect number of arguments\n");
+    if (argc != 3) {
+        perror("ERROR: incorrect number of arguments\n"
+                  "Please use command \"./server <PORT> <ISN>\"\n");
         exit(1);
     }
 
     unsigned int servPort = atoi(argv[1]);
+    unsigned short initialSeqNum = atoi(argv[2]);
 
     // =====================================
     // Socket Setup
@@ -50,7 +52,7 @@ int main (int argc, char *argv[])
 
     // =====================================
 
-    unsigned short seqNum = (rand() * rand()) % MAX_SEQN;
+    unsigned short seqNum = initialSeqNum;
 
     for (int i = 1; ; i++) {
         // =====================================
