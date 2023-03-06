@@ -14,7 +14,6 @@ void printRecv(struct packet* pkt) {
 void printSend(struct packet* pkt, int resend) {
     if (resend)
         printf("RESEND %d %d%s%s%s\n", pkt->seqnum, pkt->acknum, pkt->syn ? " SYN": "", pkt->fin ? " FIN": "", pkt->ack ? " ACK": "");
-        // NOTE: Resending dup-acks look like "RESEND 4811 8731" (looks exactly like resending dup-data packet)
     else
         printf("SEND %d %d%s%s%s%s\n", pkt->seqnum, pkt->acknum, pkt->syn ? " SYN": "", pkt->fin ? " FIN": "", pkt->ack ? " ACK": "", pkt->dupack ? " DUP-ACK": "");
 }
