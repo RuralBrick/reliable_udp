@@ -2,6 +2,8 @@
 
 #include "util.hpp"
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 enum PacketStatus {
     empty, // there is no pkt in this slot
@@ -18,11 +20,12 @@ public:
     bool isEmpty();
     bool canFitPacket(unsigned short seqNum, int len);
     bool containsPacket(unsigned short seqNum);
+    void resendTimedoutPackets(int __fd, int __flags, const sockaddr *__addr, socklen_t __addr_len);
 
 private:
     struct packet packets[WND_SIZE];
     PacketStatus status[WND_SIZE] = {empty};
-    // TODO: Timers
+    double timers[WND_SIZE];
     unsigned short startSeqNum, endSeqNum;
 
     int getPacketIdx(unsigned short seqNum);

@@ -1,6 +1,8 @@
 #include "util.hpp"
 #include "window.hpp"
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 /* Public methods */
 
@@ -23,6 +25,7 @@ void Window::addPacket(struct packet pkt) {
     int idx = getEmptySlot();
     packets[idx] = pkt;
     status[idx] = waiting;
+    timers[idx] = setTimer();
 }
 
 // Marks the given packet for removal
@@ -136,5 +139,17 @@ void Window::shiftPastAckedPackets(FILE *fp) {
         shiftBySeqNums(packets[nextIdx].length);
         status[nextIdx] = empty;
         nextIdx = getIdxOfEarliestPacket();
+    }
+}
+
+void Window::resendTimedoutPackets(int __fd, int __flags, const sockaddr *__addr, socklen_t __addr_len) {
+    for (int i = 0; i < WND_SIZE; i++)
+    {
+        if (status[i] == waiting && isTimeout(timers[i])) {
+            printTimeout(&packets[i]);
+            printSend(&packets[i], 1);
+            sendto(__fd, &packets[i], PKT_SIZE, __flags, __addr, __addr_len);
+            timers[i] = setTimer();
+        }
     }
 }

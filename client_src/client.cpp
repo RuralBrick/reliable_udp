@@ -119,15 +119,11 @@ int main (int argc, char *argv[])
     m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
     buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 1, 0, m, buf);
-    seqNum = (seqNum + m) % MAX_SEQN;
     printSend(&sendPkt, 0);
     sendto(sockfd, &sendPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
+    buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
+    seqNum = (seqNum + m) % MAX_SEQN;
     window.addPacket(sendPkt);
-
-    // TODO: start timer properly
-    // Set timer and build dupe packet
-    // timer = setTimer();
-    // buildPkt(&pkts[0], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
 
     // =====================================
     // TODO: *** Implement the rest of reliable transfer in the client ***
@@ -147,15 +143,11 @@ int main (int argc, char *argv[])
         while (!feof(fp) && !window.isFull()) {
             m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
-            buildPkt(&sendPkt, seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf); // FIXME: Flags
+            buildPkt(&sendPkt, seqNum, 0, 0, 0, 0, 0, m, buf);
             seqNum = (seqNum + m) % MAX_SEQN;
             printSend(&sendPkt, 0);
             sendto(sockfd, &sendPkt, PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
             window.addPacket(sendPkt);
-
-            // TODO: Start timers properly
-            // timer = setTimer();
-            // buildPkt(&pkts[e], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 1, m, buf);
         }
 
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
@@ -163,12 +155,9 @@ int main (int argc, char *argv[])
         if (n > 0) {
             printRecv(&ackpkt);
             window.ackPacket(ackpkt.acknum, NULL);
-
-            // TODO: Stop timer (if needed)
-            // TODO: Start new timers
         }
 
-        // TODO: Resend packets upon timeout
+        window.resendTimedoutPackets(sockfd, 0, (struct sockaddr*) &servaddr, servaddrlen);
     }
 
     // *** End of your client implementation ***

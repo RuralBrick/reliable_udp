@@ -84,7 +84,8 @@ int main (int argc, char *argv[])
                 n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &cliaddr, (socklen_t *) &cliaddrlen);
                 if (n > 0) {
                     printRecv(&ackpkt);
-                    if (ackpkt.seqnum == cliSeqNum && ackpkt.ack && ackpkt.acknum == (synackpkt.seqnum + 1) % MAX_SEQN) {
+
+                    if (ackpkt.seqnum == cliSeqNum && (ackpkt.ack || ackpkt.dupack) && ackpkt.acknum == (synackpkt.seqnum + 1) % MAX_SEQN) {
 
                         int length = snprintf(NULL, 0, "%d", i) + 6;
                         char* filename = (char*)malloc(length);
