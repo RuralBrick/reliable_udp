@@ -212,4 +212,6 @@ int main (int argc, char *argv[])
             buildPkt(&ackpkt, ackpkt.seqnum, ackpkt.acknum, 0, 0, 0, 1, 0, NULL);
         }
     }
+
+    // NOTE: Doesn't seem to resend dup-acks for server's fin
 }
