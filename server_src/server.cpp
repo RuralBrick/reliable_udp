@@ -127,8 +127,7 @@ int main (int argc, char *argv[])
         //       without handling data loss.
         //       Only for demo purpose. DO NOT USE IT in your final submission
         struct packet recvpkt;
-        Window window(cliSeqNum);  // TODO: update cliSeqNum with each pkt
-                                   // because it's used in teardown
+        Window window(cliSeqNum);
 
         while(1) {
             n = recvfrom(sockfd, &recvpkt, PKT_SIZE, 0, (struct sockaddr *) &cliaddr, (socklen_t *) &cliaddrlen);
@@ -136,7 +135,7 @@ int main (int argc, char *argv[])
                 printRecv(&recvpkt);
 
                 if (recvpkt.fin) {
-                    cliSeqNum = (cliSeqNum + 1) % MAX_SEQN;
+                    cliSeqNum = (recvpkt.seqnum + 1) % MAX_SEQN;
 
                     buildPkt(&ackpkt, seqNum, cliSeqNum, 0, 0, 1, 0, 0, NULL);
                     printSend(&ackpkt, 0);
