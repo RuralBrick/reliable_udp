@@ -144,6 +144,7 @@ int main (int argc, char *argv[])
 
         while (!feof(fp) && !window.isFull()) {
             m = fread(buf, 1, PAYLOAD_SIZE, fp);
+            if (m == 0) continue;
 
             buildPkt(&sendPkt, seqNum, 0, 0, 0, 0, 0, m, buf);
             seqNum = (seqNum + m) % MAX_SEQN;
