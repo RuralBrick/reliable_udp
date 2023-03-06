@@ -65,7 +65,7 @@ bool Window::canFitPacket(unsigned short seqNum, int len) {
 
     return beg >= startSeqNum
         && end <= endSeqNum
-        && beg < end;
+        && beg <= end;
 }
 
 bool Window::containsPacket(unsigned short seqNum) {
