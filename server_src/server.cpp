@@ -150,7 +150,7 @@ int main (int argc, char *argv[])
                 // Check if we need to send a dupack
                 if (!window.canFitPacket(recvpkt.seqnum, recvpkt.length)
                         || window.containsPacket(recvpkt.seqnum)) {
-                    buildPkt(&ackpkt, seqNum, (recvpkt.seqnum + recvpkt.length) % MAX_SEQN, 0, 0, 0, 1, 0, NULL);
+                    buildPkt(&ackpkt, seqNum, (recvpkt.seqnum + recvpkt.length) % MAX_SEQN, 0, 0, 0, 0, 0, NULL);
                     printSend(&ackpkt, 0);
                     sendto(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
                     continue;
