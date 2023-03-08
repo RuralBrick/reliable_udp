@@ -1,7 +1,7 @@
 # CS118 Project 2
 
 Reliable data transport implemented over UDP.
-* Quan Do, ### TODO: Put email and UID here ###
+* Quan Do, biquando@g.ucla.edu, 105490012
 * Theodore Lau, teddy1405@g.ucla.edu, 405462550
 
 ## High-Level Design
