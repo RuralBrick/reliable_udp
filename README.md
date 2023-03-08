@@ -29,16 +29,26 @@ The same `Window` class is used in both `server_src/server.cpp` and
 
 ## Problems Encountered
 
+Our first "major" problem was not realizing the template code polled the sockets
+instead of using blocking, but after noticing it, we were quickly able to adjust
+our logic appropriately. Our second major problem was synchronizing the sequence
+and ACK numbers between the server and client, especially for the teardown stage
+and for handshakes in which packets were lost. We realized we could solve the
+problem by simply updating one host's variables based on the latest packets the
+other host has sent.
 
+Our third problem involved the contents of our data packets, specifically
+concerning the very last data packet. We use `feof()` in `client_src/client.cpp`
+to check whether we have already read the entire file we are sending, but it
+only returns non-zero after a failed read. Therefore, we would create and send a
+packet of payload size 0 after already sending the entire file, which is
+incorrect behavior. We fixed it by simply ignoring any size 0 reads.
 
-### TODO: Finish ###
-* polling (realizing the template code was using polling)
-* numbers (synchronizing seq and ack numbers)
-    - (also affected teardown/handshake with lost packets)
-* file content (sending empty data packet)
-* server/client logs (spec/autograder compliance)
+Our last major problem involved making sure our printouts simply complied with
+what the spec and autograder expected, which involved tweaking each of our print
+calls slightly until our output matched what was expected.
 
 ## Outside Resources
 
-### TODO: Finish ###
-* 
+We used no outside resources other than what was presented in class and
+discussion.
