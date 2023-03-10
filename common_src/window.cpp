@@ -72,6 +72,18 @@ bool Window::containsPacket(unsigned short seqNum) {
     return getPacketIdx(seqNum) >= 0;
 }
 
+void Window::resendTimedoutPackets(int __fd, int __flags, const sockaddr *__addr, socklen_t __addr_len) {
+    for (int i = 0; i < WND_SIZE; i++)
+    {
+        if (status[i] == waiting && isTimeout(timers[i])) {
+            printTimeout(&packets[i]);
+            printSend(&packets[i], 1);
+            sendto(__fd, &packets[i], PKT_SIZE, __flags, __addr, __addr_len);
+            timers[i] = setTimer();
+        }
+    }
+}
+
 /* Private methods */
 
 // if there is a packet in the window with the given seqNum, return its index
@@ -139,17 +151,5 @@ void Window::shiftPastAckedPackets(FILE *fp) {
         shiftBySeqNums(packets[nextIdx].length);
         status[nextIdx] = empty;
         nextIdx = getIdxOfEarliestPacket();
-    }
-}
-
-void Window::resendTimedoutPackets(int __fd, int __flags, const sockaddr *__addr, socklen_t __addr_len) {
-    for (int i = 0; i < WND_SIZE; i++)
-    {
-        if (status[i] == waiting && isTimeout(timers[i])) {
-            printTimeout(&packets[i]);
-            printSend(&packets[i], 1);
-            sendto(__fd, &packets[i], PKT_SIZE, __flags, __addr, __addr_len);
-            timers[i] = setTimer();
-        }
     }
 }
